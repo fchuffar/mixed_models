@@ -1,5 +1,6 @@
 ---
-title: "biodiv"
+title: "Modèles mixtes"
+subtitle: "TP1: `biodivcontinamerdb`"
 author: "Florent Chuffart & Laurent Husson"
 date: "`r Sys.Date()`"
 output: 
@@ -9,6 +10,9 @@ output:
     toc_depth: 3
     number_sections: true
 ---
+
+
+
 
 
 
@@ -43,7 +47,7 @@ dim(biodivcontinamerdb)
 ```
 
 
-```{r fig.height=6, fig.width=8}
+```{r map, fig.height=6, fig.width=8}
 d = biodivcontinamerdb
 # layout(cbind(matrix(1, nrow=3, ncol=3), matrix(2:4)), respect=TRUE)
 layout(1, respect=TRUE)
@@ -54,12 +58,254 @@ legend("bottomleft", levels(d$area), col=1:length(levels(d$area)), pch=15)
 ```
 
 
-```{r fig.height=3, fig.width=9}
+```{r spr, fig.height=3, fig.width=9}
 layout(matrix(1:3, nrow=1), respect=TRUE)
 plot(d$lat, d$spr_amphibians, xlab="lat", ylab="spr", main="amphibians", pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
 plot(d$lat, d$spr_birds     , xlab="lat", ylab="spr", main="birds"     , pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
 plot(d$lat, d$spr_mammals   , xlab="lat", ylab="spr", main="mammals"   , pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
 ```
+
+
+
+
+
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+
+
+
+
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
+d = datasets::Orange
+d$Tree = factor(d$Tree, levels=unique(d$Tree), order=FALSE)
+# head(d)
+# dim(d)
+d2 = d
+
+
+d = biodivcontinamerdb
+
+
+d$grp = d$area
+
+# class
+class(d) = class(d2)
+attributes(d)$formula = formula(spr_birds ~ lat | grp)
+                                             
+
+
+# layout(1, respect=TRUE)
+# plot(spr_birds~lat, d, pch=16, col=d$grp)
+# head(d[,-1])
+# table(d$grp)
+```
+
+*STAT DESC*
+
+1. Mettre les titres et les légendes des graphiques.
+
+
+
+
+
+
+# Modèles
+
+## Modèles lineaires classiques
+
+Je construis les modèles suivants : 
+
+```{r lm}
+m0 = lm(spr_birds~lat, d)
+m1 = lm(spr_birds~lat+grp, d)
+m2 = lm(spr_birds~lat*grp, d)
+```
+
+
+
+1. J’écris la formule analytique des modèles proposés ;
+2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
+3. J’étudie la distribution des résidus ; 
+4. Je valide les hypothèses des modèles ;
+
+
+
+## `m0`
+```{r echo=FALSE, results="verbatim"}
+m0 = lm(spr_birds~lat, d)
+summary(m0)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+abline(m0)
+```
+
+## `m1`
+```{r echo=FALSE, results="verbatim"}
+m1 = lm(spr_birds~lat+grp, d)
+# m1 = lm(spr_birds~lat+sex+race_ethnicity, d)
+summary(m1)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
+n = length(levels(d$grp))
+for (i in 2:n) {
+  abline(a=m1$coef[1] + m1$coef[i+1], b=m1$coef[2], col=i)  
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+```
+
+## `m2`
+```{r echo=FALSE, results="verbatim"}
+m2 = lm(spr_birds~lat*grp, d)
+summary(m2)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
+n = length(levels(d$grp))
+for (i in 2:n) {
+  abline(a=m2$coef[1] + m2$coef[i+1], b=m2$coef[2] + m2$coef[n+i] , col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+```
+
+
+## Modèles mixtes
+
+Je construis les modèles suivants : 
+
+- effet aléatoire sur l’ordonnée à l’origine et sur la pente
+- effet aléatoire uniquement sur l’ordonnée à l’origine 
+- effet aléatoire uniquement sur la pente
+
+
+```{r}
+m3 = nlme::lme(spr_birds ~ lat, data=d)
+m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
+m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
+m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
+m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
+m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
+```
+
+1. J’écris la formule analytique des modèles proposés ;
+2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
+3. J’étudie la distribution des résidus ; 
+4. Je valide les hypothèses des modèles ;
+
+
+
+```{r lme, echo=FALSE, results="verbatim"}
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+# library(nlme)
+# res.lme = lme(distance ~ lat, data = Orthodont) summary(res.lme)
+m3 = nlme::lme(spr_birds ~ lat, data=d)
+summary(m3)
+coef(m3)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
+summary(m4)
+coef(m4)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m4)$grp[i,1], b=coef(m4)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
+summary(m5)
+coef(m5)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m5)$grp[i,1], b=coef(m5)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+
+m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
+summary(m6)
+coef(m6)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m6)$grp[i,1], b=coef(m6)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+
+m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
+summary(m7)
+coef(m7)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m7)$grp[i,1], b=coef(m7)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
+summary(m8)
+coef(m8)
+plot(spr_birds~lat, d, pch=16, col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m8)$grp[i,1], b=coef(m8)$grp[i,2], col=i)
+}
+legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+```
+
+
+
+## Choix de modèles
+
+
+```{r}
+BIC(m0)
+BIC(m1)
+BIC(m2)
+BIC(m3)
+BIC(m4)
+BIC(m5)
+BIC(m6)
+BIC(m7)
+BIC(m8)
+
+plot(0:8, c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm3=BIC(m3),
+  BICm4=BIC(m4),
+  BICm5=BIC(m5),
+  BICm6=BIC(m6),
+  BICm7=BIC(m7),
+  BICm8=BIC(m8)
+))
+
+```
+
+
+# Conclusion
+
+1. Conclure
+
+
+
 
 
 # References

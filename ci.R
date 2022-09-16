@@ -1,0 +1,5 @@
+rmarkdown::render("tp_meth.Rmd")
+rmarkdown::render("tp_meth.Rmd")
+rmarkdown::render("tp_biodiv.Rmd")
+rmarkdown::render("tp_bdf.Rmd")
+rmarkdown::render("tp1.Rmd")

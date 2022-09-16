@@ -28,9 +28,9 @@ layout(1, respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree)
 ```
 
-*STAT DESC*
+**STAT DESC**
 
-1. Mettre les titres et les légendes des graphiques.
+1. Je mets les titres et les légendes des graphiques.
 
 
 
@@ -63,7 +63,7 @@ m2 = lm(circumference~age*Tree, d)
 3. J’étudie la distribution des résidus ; 
 4. Je valide les hypothèses des modèles ;
 
-
+## `m0`
 ```{r lm}
 layout(1, respect=TRUE)
 
@@ -71,26 +71,37 @@ m0 = lm(circumference~age, d)
 summary(m0)
 plot(circumference~age, d, pch=16, col=d$Tree)
 abline(m0)
+```
 
+## `m1`
+```{r echo=FALSE, results="verbatim"}
 m1 = lm(circumference~age+Tree, d)
+# m1 = lm(circumference~age+sex+race_ethnicity, d)
 summary(m1)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree)
 abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
-abline(a=m1$coef[1] + m1$coef[3], b=m1$coef[2], col=2)
-abline(a=m1$coef[1] + m1$coef[4], b=m1$coef[2], col=3)
-abline(a=m1$coef[1] + m1$coef[5], b=m1$coef[2], col=4)
-abline(a=m1$coef[1] + m1$coef[6], b=m1$coef[2], col=5)
+n = length(levels(d$Tree))
+for (i in 2:n) {
+  abline(a=m1$coef[1] + m1$coef[i+1], b=m1$coef[2], col=i)  
+}
+legend("bottomright", cex=.7, levels(d$Tree), col=1:length(levels(d$Tree)), pch=16)
+```
 
-
+## `m2`
+```{r echo=FALSE, results="verbatim"}
 m2 = lm(circumference~age*Tree, d)
 summary(m2)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree)
 abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
-abline(a=m2$coef[1] + m2$coef[3], b=m2$coef[2] + m2$coef[7] , col=2)
-abline(a=m2$coef[1] + m2$coef[4], b=m2$coef[2] + m2$coef[8] , col=3)
-abline(a=m2$coef[1] + m2$coef[5], b=m2$coef[2] + m2$coef[9] , col=4)
-abline(a=m2$coef[1] + m2$coef[6], b=m2$coef[2] + m2$coef[10], col=5)
+n = length(levels(d$Tree))
+for (i in 2:n) {
+  abline(a=m2$coef[1] + m2$coef[i+1], b=m2$coef[2] + m2$coef[n+i] , col=i)
+}
+legend("bottomright", cex=.7, levels(d$Tree), col=1:length(levels(d$Tree)), pch=16)
 ```
+
 
 
 ## Modèles mixtes
@@ -107,8 +118,8 @@ m4 = lme4::lmer(circumference ~ age + (age | Tree), data=d)
 
 1. J’écris la formule analytique des modèles proposés ;
 2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
-3. J’étudie la distribution des résidus ; 
-4. Je valide les hypothèses des modèles ;
+3. J’étudie la distribution des résidus et des **coefficients**; 
+4. J’interprète.
 
 
 
@@ -153,8 +164,8 @@ m8 = lme4::lmer(circumference ~ age + (0+age | Tree), data = d)
 
 1. J’écris la formule analytique des modèles proposés ;
 2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
-3. J’étudie la distribution des résidus ; 
-4. Je valide les hypothèses des modèles ;
+3. J’étudie la distribution des résidus et des coefficients; 
+4. J’interprète.
 
 
 ```{r}
@@ -209,6 +220,19 @@ abline(a=coef(m8)$Tree[5,1], b=coef(m8)$Tree[5,2], col=5)
 ## Choix de modèles
 
 
+```{r echo=FALSE}
+plot(0:8, c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm3=BIC(m3),
+  BICm4=BIC(m4),
+  BICm5=BIC(m5),
+  BICm6=BIC(m6),
+  BICm7=BIC(m7),
+  BICm8=BIC(m8)
+))
+```
 ```{r}
 BIC(m0)
 BIC(m1)
@@ -220,6 +244,8 @@ BIC(m6)
 BIC(m7)
 BIC(m8)
 ```
+
+
 
 
 # Conclusion

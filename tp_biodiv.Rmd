@@ -187,11 +187,11 @@ Je construis les modèles suivants :
 
 
 ```{r}
-m3 = nlme::lme(spr_birds ~ lat, data=d)
+# m3 = nlme::lme(spr_birds ~ lat, data=d)
 m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
-m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
+# m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
 m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
-m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
+# m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
 m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
 ```
 
@@ -204,17 +204,16 @@ m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
 
 ```{r lme, echo=FALSE, results="verbatim"}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
-# library(nlme)
-# res.lme = lme(distance ~ lat, data = Orthodont) summary(res.lme)
-m3 = nlme::lme(spr_birds ~ lat, data=d)
-summary(m3)
-coef(m3)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
-n = length(levels(d$grp))
-for (i in 1:n) {
-  abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
-}
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+# m3 = nlme::lme(spr_birds ~ lat, data=d)
+# summary(m3)
+# coef(m3)
+# plot(spr_birds~lat, d, pch=16, col=d$grp)
+# n = length(levels(d$grp))
+# for (i in 1:n) {
+#   abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
+# }
+# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
 summary(m4)
@@ -226,15 +225,15 @@ for (i in 1:n) {
 }
 legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
-m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
-summary(m5)
-coef(m5)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
-n = length(levels(d$grp))
-for (i in 1:n) {
-  abline(a=coef(m5)$grp[i,1], b=coef(m5)$grp[i,2], col=i)
-}
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+# m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
+# summary(m5)
+# coef(m5)
+# plot(spr_birds~lat, d, pch=16, col=d$grp)
+# n = length(levels(d$grp))
+# for (i in 1:n) {
+#   abline(a=coef(m5)$grp[i,1], b=coef(m5)$grp[i,2], col=i)
+# }
+# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 
 m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
@@ -248,15 +247,15 @@ for (i in 1:n) {
 legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 
-m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
-summary(m7)
-coef(m7)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
-n = length(levels(d$grp))
-for (i in 1:n) {
-  abline(a=coef(m7)$grp[i,1], b=coef(m7)$grp[i,2], col=i)
-}
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+# m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
+# summary(m7)
+# coef(m7)
+# plot(spr_birds~lat, d, pch=16, col=d$grp)
+# n = length(levels(d$grp))
+# for (i in 1:n) {
+#   abline(a=coef(m7)$grp[i,1], b=coef(m7)$grp[i,2], col=i)
+# }
+# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
 summary(m8)
@@ -278,22 +277,24 @@ legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16
 BIC(m0)
 BIC(m1)
 BIC(m2)
-BIC(m3)
+# BIC(m3)
 BIC(m4)
-BIC(m5)
+# BIC(m5)
 BIC(m6)
-BIC(m7)
+# BIC(m7)
 BIC(m8)
 
-plot(0:8, c(
+plot(
+  # 0:8,
+  c(
   BICm0=BIC(m0),
   BICm1=BIC(m1),
   BICm2=BIC(m2),
-  BICm3=BIC(m3),
+  # BICm3=BIC(m3),
   BICm4=BIC(m4),
-  BICm5=BIC(m5),
+  # BICm5=BIC(m5),
   BICm6=BIC(m6),
-  BICm7=BIC(m7),
+  # BICm7=BIC(m7),
   BICm8=BIC(m8)
 ))
 

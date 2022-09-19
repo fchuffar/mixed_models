@@ -42,6 +42,10 @@ Does the World Strain Map impact the species richness given the lattitude for am
 
 ```{r db_files, echo=TRUE, results="verbatim"}
 biodivcontinamerdb = readRDS("biodivcontinamerdb.rds")
+# set.seed(1)
+# biodivcontinamerdb = biodivcontinamerdb[sort(sample(1:nrow(biodivcontinamerdb), 30000)), ]
+# saveRDS(biodivcontinamerdb, "biodivcontinamerdb.rds")
+# table(biodivcontinamerdb$area)
 head(biodivcontinamerdb)
 dim(biodivcontinamerdb)
 ```
@@ -52,7 +56,7 @@ d = biodivcontinamerdb
 # layout(cbind(matrix(1, nrow=3, ncol=3), matrix(2:4)), respect=TRUE)
 layout(1, respect=TRUE)
 plot(  d$lon, d$lat, pch=".", col=c("grey75", "grey25")[(d$wsm>0)+1], main="North, Central and South American west coast" )
-points(d$lon, d$lat, pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.05))
+points(d$lon, d$lat, pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
 legend("topright", c("wsm==0", "wsm>0"), col=c("grey75", "grey25"), pch=15)
 legend("bottomleft", levels(d$area), col=1:length(levels(d$area)), pch=15)
 ```

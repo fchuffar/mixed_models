@@ -1,0 +1,273 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP1.3: `Orange`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+d = datasets::Orange
+d$Tree = factor(d$Tree, levels=unique(d$Tree), order=FALSE)
+head(d)
+dim(d)
+
+d2 = d
+# Adding biais on Tree 2 circumference dispersion values
+tmp_circ = d2[d2$Tree%in%2, ]$circumference
+tmp_age = d2[d2$Tree%in%2, ]$age
+set.seed(1)
+new_circ = tmp_circ + 3*m$residuals
+m = lm(tmp_circ~tmp_age)
+layout(matrix(1:2,1), respect=TRUE)
+plot(tmp_age, tmp_circ, col=2, ylim=range(c(tmp_circ, new_circ)))
+abline(m, col=2)
+points(tmp_age, new_circ, col=4)
+abline(lm(new_circ~tmp_age), col=4, lty=2)
+d2[d2$Tree%in%2, ]$circumference = new_circ
+
+
+layout(matrix(1:2,1), respect=TRUE)
+plot(density(d$circ))
+plot(density(d2$circ))
+
+layout(matrix(1:2,1), respect=TRUE)
+plot(circumference~age, d, pch=16, col=d2$Tree)
+plot(circumference~age, d2, pch=16, col=d2$Tree)
+
+d = d2
+
+
+```
+
+*STAT DESC*
+
+1. Mettre les titres et les légendes des graphiques.
+
+
+
+
+# Modèles
+
+## Modèles lineaires classiques
+
+Je construis les modèles suivants : 
+
+```{r}
+m0 = lm(circumference~age, d)
+m1 = lm(circumference~age+Tree, d)
+m2 = lm(circumference~age*Tree, d)
+```
+
+
+
+1. J’écris la formule analytique des modèles proposés ;
+2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
+3. J’étudie la distribution des résidus ; 
+4. Je valide les hypothèses des modèles ;
+
+## `m0`
+```{r lm}
+layout(1, respect=TRUE)
+
+m0 = lm(circumference~age, d)
+summary(m0)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(m0)
+```
+
+## `m1`
+```{r echo=FALSE, results="verbatim"}
+m1 = lm(circumference~age+Tree, d)
+# m1 = lm(circumference~age+sex+race_ethnicity, d)
+summary(m1)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
+n = length(levels(d$Tree))
+for (i in 2:n) {
+  abline(a=m1$coef[1] + m1$coef[i+1], b=m1$coef[2], col=i)  
+}
+legend("bottomright", cex=.7, levels(d$Tree), col=1:length(levels(d$Tree)), pch=16)
+```
+
+## `m2`
+```{r echo=FALSE, results="verbatim"}
+m2 = lm(circumference~age*Tree, d)
+summary(m2)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
+n = length(levels(d$Tree))
+for (i in 2:n) {
+  abline(a=m2$coef[1] + m2$coef[i+1], b=m2$coef[2] + m2$coef[n+i] , col=i)
+}
+legend("bottomright", cex=.7, levels(d$Tree), col=1:length(levels(d$Tree)), pch=16)
+```
+
+
+
+## Modèles mixtes
+
+Je construis les modèles suivants : 
+
+(effet aléatoire sur l’ordonnée à l’origine et sur la pente)
+
+
+```{r}
+m3 = nlme::lme(circumference ~ age, data=d)
+m4 = lme4::lmer(circumference ~ age + (age | Tree), data=d)
+```
+
+1. J’écris la formule analytique des modèles proposés ;
+2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
+3. J’étudie la distribution des résidus et des **coefficients**; 
+4. J’interprète.
+
+
+
+```{r lme}
+layout(1, respect=TRUE)
+
+# library(nlme)
+# res.lme = lme(distance ~ age, data = Orthodont) summary(res.lme)
+m3 = nlme::lme(circumference ~ age, data=d)
+summary(m3)
+coef(m3)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m3)[1,1], b=coef(m3)[1,2], col=1)
+abline(a=coef(m3)[2,1], b=coef(m3)[2,2], col=2)
+abline(a=coef(m3)[3,1], b=coef(m3)[3,2], col=3)
+abline(a=coef(m3)[4,1], b=coef(m3)[4,2], col=4)
+abline(a=coef(m3)[5,1], b=coef(m3)[5,2], col=5)
+
+m4 = lme4::lmer(circumference ~ age + (age | Tree), data=d)
+summary(m4)
+coef(m4)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m4)$Tree[1,1], b=coef(m4)$Tree[1,2], col=1)
+abline(a=coef(m4)$Tree[2,1], b=coef(m4)$Tree[2,2], col=2)
+abline(a=coef(m4)$Tree[3,1], b=coef(m4)$Tree[3,2], col=3)
+abline(a=coef(m4)$Tree[4,1], b=coef(m4)$Tree[4,2], col=4)
+abline(a=coef(m4)$Tree[5,1], b=coef(m4)$Tree[5,2], col=5)
+```
+
+
+
+Je construis les modèles suivants : 
+
+(effet aléatoire uniquement sur l’ordonnée à l’origine ou  effet aléatoire uniquement sur la pente)
+
+```{r}
+m5 = nlme::lme( circumference ~ age, random = ~ 1, data = d)
+m6 = lme4::lmer(circumference ~ age + (1 | Tree), data = d)
+m7 = nlme::lme( circumference ~ age, random = ~ age-1, data = d)
+m8 = lme4::lmer(circumference ~ age + (0+age | Tree), data = d)
+```
+
+1. J’écris la formule analytique des modèles proposés ;
+2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
+3. J’étudie la distribution des résidus et des coefficients; 
+4. J’interprète.
+
+
+```{r}
+layout(1, respect=TRUE)
+
+m5 = nlme::lme( circumference ~ age, random = ~ 1, data = d)
+summary(m5)
+coef(m5)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m5)[1,1], b=coef(m5)[1,2], col=1)
+abline(a=coef(m5)[2,1], b=coef(m5)[2,2], col=2)
+abline(a=coef(m5)[3,1], b=coef(m5)[3,2], col=3)
+abline(a=coef(m5)[4,1], b=coef(m5)[4,2], col=4)
+abline(a=coef(m5)[5,1], b=coef(m5)[5,2], col=5)
+
+
+m6 = lme4::lmer(circumference ~ age + (1 | Tree), data = d)
+summary(m6)
+coef(m6)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m6)$Tree[1,1], b=coef(m6)$Tree[1,2], col=1)
+abline(a=coef(m6)$Tree[2,1], b=coef(m6)$Tree[2,2], col=2)
+abline(a=coef(m6)$Tree[3,1], b=coef(m6)$Tree[3,2], col=3)
+abline(a=coef(m6)$Tree[4,1], b=coef(m6)$Tree[4,2], col=4)
+abline(a=coef(m6)$Tree[5,1], b=coef(m6)$Tree[5,2], col=5)
+
+
+m7 = nlme::lme( circumference ~ age, random = ~ age-1, data = d)
+summary(m7)
+coef(m7)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m7)[1,1], b=coef(m7)[1,2], col=1)
+abline(a=coef(m7)[2,1], b=coef(m7)[2,2], col=2)
+abline(a=coef(m7)[3,1], b=coef(m7)[3,2], col=3)
+abline(a=coef(m7)[4,1], b=coef(m7)[4,2], col=4)
+abline(a=coef(m7)[5,1], b=coef(m7)[5,2], col=5)
+
+
+m8 = lme4::lmer(circumference ~ age + (0+age | Tree), data = d)
+summary(m8)
+coef(m8)
+plot(circumference~age, d, pch=16, col=d$Tree)
+abline(a=coef(m8)$Tree[1,1], b=coef(m8)$Tree[1,2], col=1)
+abline(a=coef(m8)$Tree[2,1], b=coef(m8)$Tree[2,2], col=2)
+abline(a=coef(m8)$Tree[3,1], b=coef(m8)$Tree[3,2], col=3)
+abline(a=coef(m8)$Tree[4,1], b=coef(m8)$Tree[4,2], col=4)
+abline(a=coef(m8)$Tree[5,1], b=coef(m8)$Tree[5,2], col=5)
+```
+
+
+
+## Choix de modèles
+
+```{r echo=FALSE}
+plot(0:8, c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm3=BIC(m3),
+  BICm4=BIC(m4),
+  BICm5=BIC(m5),
+  BICm6=BIC(m6),
+  BICm7=BIC(m7),
+  BICm8=BIC(m8)
+))
+```
+```{r}
+BIC(m0)
+BIC(m1)
+BIC(m2)
+BIC(m3)
+BIC(m4)
+BIC(m5)
+BIC(m6)
+BIC(m7)
+BIC(m8)
+```
+
+
+# Conclusion
+
+1. Conclure
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

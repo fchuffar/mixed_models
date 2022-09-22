@@ -1,0 +1,90 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP: Paired design"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
+d = data.frame(
+  score=0, 
+  grp   =rep(c("healthy", "sick")      , each=6), 
+  mouse =rep(c("A","B","C","D","E","F"), each=2),  
+  tissue=rep(c("liver", "lung")        , 6)
+)
+
+set.seed(1)
+d$score = as.numeric(d$grp)     + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$mouse)   + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$tissue)  + rnorm(nrow(d), 0, 0.01)
+
+d
+
+data.frame(mouse=d[d$tissue=="liver",]$mouse, grp=d[d$tissue=="liver",]$grp, liver=d[d$tissue=="liver",]$score, lung=d[d$tissue=="lung",]$score)
+
+
+layout(matrix(1:2,1), respect=TRUE)
+plot(as.numeric(d$grp), d$score, pch=as.numeric(d$tissue), col=d$mouse)
+plot(as.numeric(d$tissue), d$score, pch=as.numeric(d$grp), col=d$mouse)
+
+m = lm(score~tissue + mouse, d)
+summary(m)
+
+t.test(d[d$tissue=="liver",]$score, d[d$tissue=="lung",]$score, paired=TRUE)
+
+m = lm(score~grp + tissue, d)
+m$coef
+
+
+m1 = lm(score~grp + tissue + mouse , d)
+summary(m1)
+
+m2 = lme4::lmer(score~grp+tissue + (1|mouse), d)
+summary(m2)
+coef(m2)
+
+```
+
+```{r eval=FALSE}
+d = rbind(d, d)
+set.seed(1)
+d$score = as.numeric(d$grp)     + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$mouse)   + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$tissue)  + rnorm(nrow(d), 0, 0.01)
+d
+data.frame(mouse=d[d$tissue=="liver",]$mouse, grp=d[d$tissue=="liver",]$grp, liver=d[d$tissue=="liver",]$score, lung=d[d$tissue=="lung",]$score)
+m3 = lme4::lmer(score ~ grp+tissue + (grp | mouse), data=d)
+summary(m3)
+
+d = rbind(d, d)
+set.seed(1)
+d$score = as.numeric(d$grp)     + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$mouse)   + rnorm(nrow(d), 0, 0.01) + 
+         as.numeric(d$tissue)  + rnorm(nrow(d), 0, 0.01)
+d
+data.frame(mouse=d[d$tissue=="liver",]$mouse, grp=d[d$tissue=="liver",]$grp, liver=d[d$tissue=="liver",]$score, lung=d[d$tissue=="lung",]$score)
+m4 = lme4::lmer(score ~ grp+tissue + (grp+tissue | mouse), data=d)
+summary(m4)
+
+```
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

@@ -17,7 +17,7 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, 
 ```
 # Data
 
-J’étudie le jeux de données suivant : 
+J’étudie le jeu de données suivant : 
 
 ```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
 d = data.frame(

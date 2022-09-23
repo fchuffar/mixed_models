@@ -24,23 +24,6 @@ d = datasets::Orange
 d$Tree = factor(d$Tree, levels=unique(d$Tree), order=FALSE)
 head(d)
 dim(d)
-
-d2 = d
-# Adding biais for Tree 2 and Tree 5
-d2$circumference = d2$circ + c(0,10)[(d2$Tree%in%2)+1]
-d2$circumference = d2$circ - c(0,10)[(d2$Tree%in%5)+1]
-
-layout(matrix(1:2,1), respect=TRUE)
-plot(density(d$circ))
-plot(density(d2$circ))
-
-layout(matrix(1:2,1), respect=TRUE)
-plot(circumference~age, d, pch=16, col=d2$Tree)
-plot(circumference~age, d2, pch=16, col=d2$Tree)
-
-d = d2
-
-
 ```
 
 
@@ -100,7 +83,6 @@ abline(a=coef(m8)$Tree[5,1], b=coef(m8)$Tree[5,2], col=5)
 ## Choix de modèles
 
 
-
 ```{r echo=FALSE, results="verbatim"}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree, ylim=c(0,250))
@@ -118,7 +100,6 @@ abline(a=coef(m8)$Tree[3,1], b=coef(m8)$Tree[3,2], col=3)
 abline(a=coef(m8)$Tree[4,1], b=coef(m8)$Tree[4,2], col=4)
 abline(a=coef(m8)$Tree[5,1], b=coef(m8)$Tree[5,2], col=5)
 ```
-
 
 
 ```{r echo=FALSE}

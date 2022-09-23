@@ -165,6 +165,20 @@ for (i in 1:n) {
 ## Choix de modèles
 
 
+
+```{r echo=FALSE}
+layout(1, respect=TRUE)
+plot(c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm4=BIC(m4),
+  BICm6=BIC(m6),
+  BICm8=BIC(m8)
+), ylab="BIC", xaxt="n", xlab="models")
+```
+
+
 ```{r}
 BIC(m0)
 BIC(m1)
@@ -172,6 +186,42 @@ BIC(m2)
 BIC(m4)
 BIC(m6)
 BIC(m8)
+```
+
+
+# Impaxcte du cofacteur `Diet`
+
+
+```{r}
+m4 = lme4::lmer(weight ~ Time + (Time | Rat), data=d)
+summary(m4)
+coef(m4)
+plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+n = length(levels(d$Rat))
+for (i in 1:n) {
+  abline(a=coef(m4)$Rat[i,1], b=coef(m4)$Rat[i,2], col=i)
+}
+
+m9 = lme4::lmer(weight ~ Time + Diet + (Time | Rat), data=d)
+summary(m9)
+
+m10 = lme4::lmer(weight ~ Time + Diet + (Time + Diet | Rat), data=d)
+summary(m10)
+
+BIC(m4)
+BIC(m9)
+BIC(m10)
+
+anova(m4, m9, test="Chisq")
+
+
+
+# m11 = lme4::lmer(weight ~ Time + (Time | Rat / Diet) , data=d)
+# summary(m11)
+#
+# m11 = lme4::lmer(weight ~ Time + (Time | Diet / Rat ) , data=d)
+# summary(m11)
+
 ```
 
 

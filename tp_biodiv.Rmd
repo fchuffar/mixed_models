@@ -60,20 +60,20 @@ points(d$lon, d$lat, pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
 legend("topright", c("wsm==0", "wsm>0"), col=c("grey75", "grey25"), pch=15)
 legend("bottomleft", levels(d$area), col=1:length(levels(d$area)), pch=15)
 
-y = unique(d$lat)
-x = sapply(y, function(lat){
-  tmpd = d[d$lat==lat,]
-  tmpd[which(tmpd$z==max(tmpd$z))[1],]$lon
-})
-
-x = x[order(y)]
-y = y[order(y)]
-lines(x,y, col=2)
-
-tmpd = d[d$area == "sam_central" & d$spr_birds > 200,]
-points(tmpd$lon, tmpd$lat, col=2)
-tmpd = d[d$area == "sam_central" & d$spr_birds < 200,]
-points(tmpd$lon, tmpd$lat, col=4)
+# y = unique(d$lat)
+# x = sapply(y, function(lat){
+#   tmpd = d[d$lat==lat,]
+#   tmpd[which(tmpd$z==max(tmpd$z))[1],]$lon
+# })
+#
+# x = x[order(y)]
+# y = y[order(y)]
+# lines(x,y, col=2)
+#
+# tmpd = d[d$area == "sam_central" & d$spr_birds > 200,]
+# points(tmpd$lon, tmpd$lat, col=2)
+# tmpd = d[d$area == "sam_central" & d$spr_birds < 200,]
+# points(tmpd$lon, tmpd$lat, col=4)
 
 ```
 

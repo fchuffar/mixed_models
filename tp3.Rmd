@@ -212,6 +212,8 @@ BIC(m4)
 BIC(m9)
 BIC(m10)
 
+
+# cours_reglog.html#42_test_du_rapport_de_vraisemblance
 anova(m4, m9, test="Chisq")
 
 

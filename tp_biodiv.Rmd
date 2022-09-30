@@ -20,17 +20,13 @@ output:
 knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=4.5, eval=TRUE, echo=FALSE, results="hide")
 ```
 
-# Question
-
-Does the World Strain Map impact the species richness given the lattitude for birds?
-
 # Data
 
   -  *lon*            : longitude
   -  *lat*            : lattitude
   -  *z*              : altitude
   -  *rug*            : rugosity
-  -  *wsm*            : World Strain Map (Kreemer et al., 2014, Fig. 2a), a worldwide quantification of the rate at which the surface of the Earth*s crust is currently shortened, sheared or stretched by tectonic forces
+  -  *wsm*            : World Strain Map [1, Fig. 2a], a worldwide quantification of the rate at which the surface of the Earth*s crust is currently shortened, sheared or stretched by tectonic forces
   -  *spr_amphibians* : species richness for amphibians
   -  *spr_birds*      : species richness for birds   
   -  *spr_mammals*    : species richness for mammals
@@ -89,6 +85,19 @@ plot(d$lat, d$spr_mammals   , xlab="lat", ylab="spr", main="mammals"   , pch="."
 
 
 
+# Questions
+
+1. Does the World Strain Map impact the species richness given the lattitude for birds?
+
+2. We are used to saying that 1000m of elevation corresponds to a loss of biodiversity equivalent to 1000km towards the nearest pole [2]. According to the dataset, is this assertion right?
+
+
+
+
+
+
+
+# Models
 
 
 
@@ -98,50 +107,23 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, 
 
 
 
-
-# Data
-
-J’étudie le jeu de données suivant : 
-
 ```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
-d = datasets::Orange
-d$Tree = factor(d$Tree, levels=unique(d$Tree), order=FALSE)
-# head(d)
-# dim(d)
-d2 = d
-
-
 d = biodivcontinamerdb
-
-
 d$grp = d$area
-
 # class
-class(d) = class(d2)
+class(d) = c("nfnGroupedData", "nfGroupedData", "groupedData", "data.frame")
 attributes(d)$formula = formula(spr_birds ~ lat | grp)
-                                             
+                                       
 
 
 # layout(1, respect=TRUE)
-# plot(spr_birds~lat, d, pch=16, col=d$grp)
+# plot(spr_birds~lat, d, pch=".", col=d$grp)
 # head(d[,-1])
 # table(d$grp)
 ```
 
-*STAT DESC*
-
-1. Mettre les titres et les légendes des graphiques.
 
 
-
-
-
-
-# Modèles
-
-## Modèles lineaires classiques
-
-Je construis les modèles suivants : 
 
 ```{r lm}
 m0 = lm(spr_birds~lat, d)
@@ -150,20 +132,12 @@ m2 = lm(spr_birds~lat*grp, d)
 ```
 
 
-
-1. J’écris la formule analytique des modèles proposés ;
-2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
-3. J’étudie la distribution des résidus ; 
-4. Je valide les hypothèses des modèles ;
-
-
-
 ## `m0`
 ```{r echo=FALSE, results="verbatim"}
 m0 = lm(spr_birds~lat, d)
 summary(m0)
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
 abline(m0)
 ```
 
@@ -173,13 +147,13 @@ m1 = lm(spr_birds~lat+grp, d)
 # m1 = lm(spr_birds~lat+sex+race_ethnicity, d)
 summary(m1)
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
 abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
 n = length(levels(d$grp))
 for (i in 2:n) {
   abline(a=m1$coef[1] + m1$coef[i+1], b=m1$coef[2], col=i)  
 }
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 ```
 
 ## `m2`
@@ -187,110 +161,62 @@ legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16
 m2 = lm(spr_birds~lat*grp, d)
 summary(m2)
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
 abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
 n = length(levels(d$grp))
 for (i in 2:n) {
   abline(a=m2$coef[1] + m2$coef[i+1], b=m2$coef[2] + m2$coef[n+i] , col=i)
 }
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 ```
 
 
-## Modèles mixtes
-
-Je construis les modèles suivants : 
-
-- effet aléatoire sur l’ordonnée à l’origine et sur la pente
-- effet aléatoire uniquement sur l’ordonnée à l’origine 
-- effet aléatoire uniquement sur la pente
-
-
-```{r}
-# m3 = nlme::lme(spr_birds ~ lat, data=d)
-m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
-# m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
-m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
-# m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
-m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
-```
-
-1. J’écris la formule analytique des modèles proposés ;
-2. Je visualise les droites de régression et le graphique des prédictions de chacun des modèles ;
-3. J’étudie la distribution des résidus ; 
-4. Je valide les hypothèses des modèles ;
-
-
-
-```{r lme, echo=FALSE, results="verbatim"}
+## `m3`
+```{r echo=FALSE, results="verbatim"}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+m3 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
+summary(m3)
+coef(m3)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
+}
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
-# m3 = nlme::lme(spr_birds ~ lat, data=d)
-# summary(m3)
-# coef(m3)
-# plot(spr_birds~lat, d, pch=16, col=d$grp)
-# n = length(levels(d$grp))
-# for (i in 1:n) {
-#   abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
-# }
-# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+```
 
-m4 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
+
+## `m4`
+```{r echo=FALSE, results="verbatim"}
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+m4 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
 summary(m4)
 coef(m4)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
 n = length(levels(d$grp))
 for (i in 1:n) {
   abline(a=coef(m4)$grp[i,1], b=coef(m4)$grp[i,2], col=i)
 }
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
-
-# m5 = nlme::lme( spr_birds ~ lat, random = ~ 1, data = d)
-# summary(m5)
-# coef(m5)
-# plot(spr_birds~lat, d, pch=16, col=d$grp)
-# n = length(levels(d$grp))
-# for (i in 1:n) {
-#   abline(a=coef(m5)$grp[i,1], b=coef(m5)$grp[i,2], col=i)
-# }
-# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
-
-
-m6 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
-summary(m6)
-coef(m6)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
-n = length(levels(d$grp))
-for (i in 1:n) {
-  abline(a=coef(m6)$grp[i,1], b=coef(m6)$grp[i,2], col=i)
-}
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
-
-
-# m7 = nlme::lme( spr_birds ~ lat, random = ~ lat-1, data = d)
-# summary(m7)
-# coef(m7)
-# plot(spr_birds~lat, d, pch=16, col=d$grp)
-# n = length(levels(d$grp))
-# for (i in 1:n) {
-#   abline(a=coef(m7)$grp[i,1], b=coef(m7)$grp[i,2], col=i)
-# }
-# legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
-
-m8 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
-summary(m8)
-coef(m8)
-plot(spr_birds~lat, d, pch=16, col=d$grp)
-n = length(levels(d$grp))
-for (i in 1:n) {
-  abline(a=coef(m8)$grp[i,1], b=coef(m8)$grp[i,2], col=i)
-}
-legend("bottomright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 ```
 
 
+## `m5`
+```{r echo=FALSE, results="verbatim"}
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+m5 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)
+summary(m5)
+coef(m5)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+n = length(levels(d$grp))
+for (i in 1:n) {
+  abline(a=coef(m5)$grp[i,1], b=coef(m5)$grp[i,2], col=i)
+}
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+```
 
-## Choix de modèles
+
 
 
 ```{r}
@@ -298,32 +224,28 @@ BIC(m0)
 BIC(m1)
 BIC(m2)
 # BIC(m3)
-BIC(m4)
+BIC(m3)
 # BIC(m5)
-BIC(m6)
+BIC(m4)
 # BIC(m7)
-BIC(m8)
+BIC(m5)
+
+layout(matrix(1, 1, byrow=TRUE), respect=TRUE)
 
 plot(
-  # 0:8,
+  0:5,
   c(
   BICm0=BIC(m0),
   BICm1=BIC(m1),
   BICm2=BIC(m2),
-  # BICm3=BIC(m3),
+  BICm3=BIC(m3),
   BICm4=BIC(m4),
-  # BICm5=BIC(m5),
-  BICm6=BIC(m6),
-  # BICm7=BIC(m7),
-  BICm8=BIC(m8)
-))
+  BICm5=BIC(m5)
+), ylab="BIC", xlab="models")
 
 ```
 
 
-# Conclusion
-
-1. Conclure
 
 
 
@@ -331,7 +253,9 @@ plot(
 
 # References
 
-Kreemer, C., Blewitt, G., & Klein, E.C. (2014). A geodetic plate motion and Global Strain Rate Model. Geochemistry, Geophysics, Geosystems, 15(10), 3849-3889.
+[1] Kreemer, C., Blewitt, G., & Klein, E.C. (2014). *A geodetic plate motion and Global Strain Rate Model*. **Geochemistry, Geophysics, Geosystems**, 15(10), 3849-3889.
+
+[2] *Un monde qui fond*, Camille Belsoeur, Arkhé 2022.
 
 # Session Information
 

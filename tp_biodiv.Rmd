@@ -66,11 +66,21 @@ legend("bottomleft", levels(d$area), col=1:length(levels(d$area)), pch=15)
 # y = y[order(y)]
 # lines(x,y, col=2)
 #
-# tmpd = d[d$area == "sam_central" & d$spr_birds > 200,]
-# points(tmpd$lon, tmpd$lat, col=2)
-# tmpd = d[d$area == "sam_central" & d$spr_birds < 200,]
-# points(tmpd$lon, tmpd$lat, col=4)
+layout(1, respect=TRUE)
+plot(  d$lon, d$lat, pch=".", col=c("grey75", "grey25")[(d$wsm>0)+1], main="North, Central and South American west coast" )
+tmpd = d[d$area == "sam_central" & d$spr_birds > 200,]
+points(tmpd$lon, tmpd$lat, col=2)
+tmpd = d[d$area == "sam_central" & d$spr_birds < 200,]
+points(tmpd$lon, tmpd$lat, col=4)
 
+# Warning: take care of factors!
+# d$area2 = d$area
+# d[d$area == "sam_central" & d$spr_birds > 200,]$area2 = "amazonia"
+# table(d$area2 , useNA="ifany")
+
+d$area2 = as.character(d$area)
+d[d$area == "sam_central" & d$spr_birds > 200,]$area2 = "amazonia"
+d$area2 = factor(d$area2, levels=c(levels(d$area), "amazonia"))
 ```
 
 
@@ -108,8 +118,9 @@ knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, 
 
 
 ```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
-d = biodivcontinamerdb
+# d = biodivcontinamerdb
 d$grp = d$area
+# d$grp = d$area2
 # class
 class(d) = c("nfnGroupedData", "nfGroupedData", "groupedData", "data.frame")
 attributes(d)$formula = formula(spr_birds ~ lat | grp)
@@ -139,6 +150,42 @@ summary(m0)
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 plot(spr_birds~lat, d, pch=".", col=d$grp)
 abline(m0)
+```
+
+```{r echo=TRUE, results="verbatim"}
+d$abslat = abs(d$lat)
+m01 = lm(spr_birds~abslat+wsm, d)
+layout(1, respect=TRUE)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+points(d$lat, predict(m01), cex=.3)
+summary(m01)
+```
+
+```{r echo=TRUE, results="verbatim"}
+d$wsm01 = (d$wsm != 0)+0
+m03 = lm(spr_birds~abslat+wsm01, d)
+layout(1, respect=TRUE)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+points(d$lat, predict(m03), cex=.3)
+summary(m03)
+```
+
+
+```{r echo=TRUE, results="verbatim"}
+d$abslat = abs(d$lat)
+m02 = lm(spr_birds~abslat+z, d)
+layout(1, respect=TRUE)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+points(d$lat, predict(m02), cex=.3)
+summary(m02)
+```
+
+1 deg of lat. corresponds to 100km
+
+
+```{r echo=TRUE, results="verbatim"}
+print(m02$coef[2] * 10) 
+print(m02$coef[3] * 1000) 
 ```
 
 ## `m1`
@@ -172,17 +219,66 @@ legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 
 ## `m3`
-```{r echo=FALSE, results="verbatim"}
-layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+```{r echo=TRUE, results="verbatim"}
 m3 = lme4::lmer(spr_birds ~ lat + (lat | grp), data=d)
 summary(m3)
 coef(m3)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 plot(spr_birds~lat, d, pch=".", col=d$grp)
 n = length(levels(d$grp))
 for (i in 1:n) {
   abline(a=coef(m3)$grp[i,1], b=coef(m3)$grp[i,2], col=i)
 }
 legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+
+m31 = lme4::lmer(spr_birds ~ lat + (lat | grp) + (lat | wsm01), data=d)
+plot(spr_birds~lat, d, pch=".", col=4)
+points(d$lat, predict(m31), cex=.3, col=d$wsm01+1)
+legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
+summary(m31)
+coef(m31)
+
+
+m32 = lme4::lmer(spr_birds ~ lat + wsm01 + (lat + wsm01 | grp), data=d)
+plot(spr_birds~lat, d, pch=".", col=4, main="m31")
+points(d$lat, predict(m31), cex=.3, col=d$wsm01+1)
+legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
+plot(spr_birds~lat, d, pch=".", col=4, main="m32")
+points(d$lat, predict(m32), cex=.3, col=d$wsm01+1)
+legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
+summary(m32)
+coef(m32)
+
+
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+
+m32 = lme4::lmer(spr_birds ~ lat + wsm01 + (lat * wsm01 | grp), data=d)
+plot(spr_birds~lat, d, pch=".", col=4, main="m32")
+points(d$lat, predict(m32), cex=.3, col=d$wsm01+1)
+legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
+summary(m32)
+coef(m32)
+
+m33 = lme4::lmer(spr_birds ~ lat + (1 | grp) + (0 + lat | grp/wsm01), data=d)
+plot(spr_birds~lat, d, pch=".", col=4, main="m33")
+points(d$lat, predict(m33), cex=.3, col=d$wsm01+1)
+legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
+summary(m33)
+coef(m33)
+
+```
+
+```{r}
+m39 = lme4::lmer(spr_birds ~ abslat + z + (abslat + z | grp), data=d)
+plot(spr_birds~lat, d, pch=".", col=4, main="m31")
+points(d$lat, predict(m39), cex=.3, col=d$wsm01+1)
+coef(m39)
+cbind(
+  coef(m39)$grp$abslat *10,
+  coef(m39)$grp$z *1000
+)
+
+```
 
 ```
 

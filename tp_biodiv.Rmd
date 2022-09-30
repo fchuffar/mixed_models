@@ -249,7 +249,9 @@ legend("topright", c("wsm=0", "wsm!=0"), col=1:2, pch=16)
 summary(m32)
 coef(m32)
 
+```
 
+```{r}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 
 m32 = lme4::lmer(spr_birds ~ lat + wsm01 + (lat * wsm01 | grp), data=d)
@@ -269,8 +271,9 @@ coef(m33)
 ```
 
 ```{r}
+layout(1, respect=TRUE)
 m39 = lme4::lmer(spr_birds ~ abslat + z + (abslat + z | grp), data=d)
-plot(spr_birds~lat, d, pch=".", col=4, main="m31")
+plot(spr_birds~lat, d, pch=".", col=4, main="m39")
 points(d$lat, predict(m39), cex=.3, col=d$wsm01+1)
 coef(m39)
 cbind(
@@ -280,10 +283,9 @@ cbind(
 
 ```
 
-```
-
 
 ## `m4`
+
 ```{r echo=FALSE, results="verbatim"}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 m4 = lme4::lmer(spr_birds ~ lat + (1 | grp), data = d)
@@ -299,6 +301,7 @@ legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
 
 
 ## `m5`
+
 ```{r echo=FALSE, results="verbatim"}
 layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
 m5 = lme4::lmer(spr_birds ~ lat + (0+lat | grp), data = d)

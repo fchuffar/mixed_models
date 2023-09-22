@@ -61,12 +61,12 @@ layout(1, respect=TRUE)
 
 m0 = lm(weight~Time, d)
 summary(m0)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 abline(m0)
 
 m1 = lm(weight~Time+Rat, d)
 summary(m1)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
 n = length(levels(d$Rat))
 for (i in 2:n) {
@@ -76,7 +76,7 @@ for (i in 2:n) {
 
 m2 = lm(weight~Time*Rat, d)
 summary(m2)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
 n = length(levels(d$Rat))
 for (i in 2:n) {
@@ -107,6 +107,7 @@ m4 = lme4::lmer(weight ~ Time + (Time | Rat), data=d)
 4. Je valide les hypothèses des modèles ;
 
 
+## `m4`
 
 ```{r lme}
 layout(1, respect=TRUE)
@@ -115,7 +116,7 @@ layout(1, respect=TRUE)
 m4 = lme4::lmer(weight ~ Time + (Time | Rat), data=d)
 summary(m4)
 coef(m4)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 n = length(levels(d$Rat))
 for (i in 1:n) {
   abline(a=coef(m4)$Rat[i,1], b=coef(m4)$Rat[i,2], col=i)
@@ -138,6 +139,8 @@ m8 = lme4::lmer(weight ~ Time + (0+Time | Rat), data = d)
 3. J’étudie la distribution des résidus ; 
 4. Je valide les hypothèses des modèles ;
 
+## `m6` `m8`
+
 
 ```{r}
 layout(1, respect=TRUE)
@@ -145,7 +148,7 @@ layout(1, respect=TRUE)
 m6 = lme4::lmer(weight ~ Time + (1 | Rat), data = d)
 summary(m6)
 coef(m6)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 n = length(levels(d$Rat))
 for (i in 1:n) {
   abline(a=coef(m6)$Rat[i,1], b=coef(m6)$Rat[i,2], col=i)
@@ -154,7 +157,7 @@ for (i in 1:n) {
 m8 = lme4::lmer(weight ~ Time + (0+Time | Rat), data = d)
 summary(m8)
 coef(m8)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet))
 for (i in 1:n) {
   abline(a=coef(m8)$Rat[i,1], b=coef(m8)$Rat[i,2], col=i)
 }
@@ -176,6 +179,8 @@ plot(c(
   BICm6=BIC(m6),
   BICm8=BIC(m8)
 ), ylab="BIC", xaxt="n", xlab="models")
+axis(1, at=1:6, label=c("m0", "m1", "m2", "m4", "m6", "m8"))
+
 ```
 
 
@@ -189,40 +194,99 @@ BIC(m8)
 ```
 
 
-# Impaxcte du cofacteur `Diet`
+# Impacte du cofacteur `Diet`
+
 
 
 ```{r}
-m4 = lme4::lmer(weight ~ Time + (Time | Rat), data=d)
-summary(m4)
-coef(m4)
-plot(weight~Time, d, pch=16, col=d$Rat, lty=as.numeric(d$Diet))
+layout(matrix(1:2,1), respect=TRUE)
+plot(weight~Time, d, col=d$Rat, pch=as.numeric(d$Diet))
+m = lm(weight~Time*Diet, d)
+summary(m)
+m$coef
+abline(a=m$coef[1], b=m$coef[2], col=1)
+abline(a=m$coef[1] + m$coef[["Diet2"]], b=m$coef[2]+m$coef[["Time:Diet2"]], col=2)
+abline(a=m$coef[1] + m$coef[["Diet3"]], b=m$coef[2]+m$coef[["Time:Diet3"]], col=3)
+legend("topleft", c("Diet1", "Diet2", "Diet3"), col=1:3, lty=1)
+```
+
+# Prise en compte du `Rat` comme un effet aléatoire
+
+
+
+```{r}
+layout(matrix(1:3,1), respect=TRUE)
+
+m9 = lme4::lmer(weight ~ Time*Diet + (Time | Rat), data=d)
+summary(m9)
+coef(m9)
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet), main="weight ~ Time*Diet + (Time | Rat)")
 n = length(levels(d$Rat))
 for (i in 1:n) {
-  abline(a=coef(m4)$Rat[i,1], b=coef(m4)$Rat[i,2], col=i)
+  tmp_diet = d[d$Rat==i,]$Diet[1]
+  if (tmp_diet==1) {
+    abline(a=coef(m9)$Rat[i,1], b=coef(m9)$Rat[i,2], col=i)    
+  } else if (tmp_diet==2) {
+    abline(a=coef(m9)$Rat[i,1]+coef(m9)$Rat[i,3], b=coef(m9)$Rat[i,2]+coef(m9)$Rat[i,5], col=i)        
+  } else {
+    abline(a=coef(m9)$Rat[i,1]+coef(m9)$Rat[i,4], b=coef(m9)$Rat[i,2]+coef(m9)$Rat[i,6], col=i)    
+  }
 }
 
-m9 = lme4::lmer(weight ~ Time + Diet + (Time | Rat), data=d)
-summary(m9)
 
-m10 = lme4::lmer(weight ~ Time + Diet + (Time + Diet | Rat), data=d)
+
+m10 = lme4::lmer(weight ~ Time*Diet + (1 | Rat), data=d)
 summary(m10)
+coef(m10)
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet), main="weight ~ Time*Diet + (1 | Rat)")
+n = length(levels(d$Rat))
+for (i in 1:n) {
+  tmp_diet = d[d$Rat==i,]$Diet[1]
+  if (tmp_diet==1) {
+    abline(a=coef(m10)$Rat[i,1], b=coef(m10)$Rat[i,2], col=i)    
+  } else if (tmp_diet==2) {
+    abline(a=coef(m10)$Rat[i,1]+coef(m10)$Rat[i,3], b=coef(m10)$Rat[i,2]+coef(m10)$Rat[i,5], col=i)        
+  } else {
+    abline(a=coef(m10)$Rat[i,1]+coef(m10)$Rat[i,4], b=coef(m10)$Rat[i,2]+coef(m10)$Rat[i,6], col=i)    
+  }
+}
+points(d$Time, predict(m10, d), col=d$Rat, pch=16)
 
-BIC(m4)
-BIC(m9)
-BIC(m10)
-
-
-# cours_reglog.html#42_test_du_rapport_de_vraisemblance
-anova(m4, m9, test="Chisq")
 
 
 
-# m11 = lme4::lmer(weight ~ Time + (Time | Rat / Diet) , data=d)
-# summary(m11)
-#
-# m11 = lme4::lmer(weight ~ Time + (Time | Diet / Rat ) , data=d)
-# summary(m11)
+m11 = lme4::lmer(weight ~ Time*Diet + (0+Time | Rat), data=d)
+summary(m11)
+coef(m11)
+plot(weight~Time, d, col=d$Rat, lty=as.numeric(d$Diet), pch=as.numeric(d$Diet), main="weight ~ Time*Diet + (0+Time | Rat)")
+n = length(levels(d$Rat))
+for (i in 1:n) {
+  tmp_diet = d[d$Rat==i,]$Diet[1]
+  if (tmp_diet==1) {
+    abline(a=coef(m11)$Rat[i,1], b=coef(m11)$Rat[i,2], col=i)    
+  } else if (tmp_diet==2) {
+    abline(a=coef(m11)$Rat[i,1]+coef(m11)$Rat[i,3], b=coef(m11)$Rat[i,2]+coef(m11)$Rat[i,5], col=i)        
+  } else {
+    abline(a=coef(m11)$Rat[i,1]+coef(m11)$Rat[i,4], b=coef(m11)$Rat[i,2]+coef(m11)$Rat[i,6], col=i)    
+  }
+}
+
+
+
+
+
+plot(c(BIC(m9), BIC(m10), BIC(m11)))
+
+
+
+m12 = nlme::lme(weight ~ Time*Diet, random = ~ 1, data=d)
+summary(m12)
+
+
+
+# # cours_reglog.html#42_test_du_rapport_de_vraisemblance
+# anova(m4, m9, test="Chisq")
+
 
 ```
 

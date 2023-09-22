@@ -78,7 +78,7 @@ abline(m0)
 m1 = lm(circumference~age+Tree, d)
 # m1 = lm(circumference~age+sex+race_ethnicity, d)
 summary(m1)
-layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+layout(1, respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree)
 abline(a=m1$coef[1]             , b=m1$coef[2], col=1)
 n = length(levels(d$Tree))
@@ -92,7 +92,7 @@ legend("bottomright", cex=.7, levels(d$Tree), col=1:length(levels(d$Tree)), pch=
 ```{r echo=FALSE, results="verbatim"}
 m2 = lm(circumference~age*Tree, d)
 summary(m2)
-layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+layout(1, respect=TRUE)
 plot(circumference~age, d, pch=16, col=d$Tree)
 abline(a=m2$coef[1]             , b=m2$coef[2]              , col=1)
 n = length(levels(d$Tree))
@@ -122,6 +122,7 @@ m4 = lme4::lmer(circumference ~ age + (age | Tree), data=d)
 4. J’interprète.
 
 
+## `m3` `m4`
 
 ```{r lme}
 layout(1, respect=TRUE)
@@ -137,6 +138,16 @@ abline(a=coef(m3)[2,1], b=coef(m3)[2,2], col=2)
 abline(a=coef(m3)[3,1], b=coef(m3)[3,2], col=3)
 abline(a=coef(m3)[4,1], b=coef(m3)[4,2], col=4)
 abline(a=coef(m3)[5,1], b=coef(m3)[5,2], col=5)
+
+plot(circumference~age, d, pch=16, col=d$Tree, xlim=c(0,2000), ylim=c(-50, 200))
+abline(a=coef(m3)[1,1], b=coef(m3)[1,2], col=1)
+abline(a=coef(m3)[2,1], b=coef(m3)[2,2], col=2)
+abline(a=coef(m3)[3,1], b=coef(m3)[3,2], col=3)
+abline(a=coef(m3)[4,1], b=coef(m3)[4,2], col=4)
+abline(a=coef(m3)[5,1], b=coef(m3)[5,2], col=5)
+abline(v=0, lty=2)
+
+
 
 m4 = lme4::lmer(circumference ~ age + (age | Tree), data=d)
 summary(m4)
@@ -168,6 +179,7 @@ m8 = lme4::lmer(circumference ~ age + (0+age | Tree), data = d)
 4. J’interprète.
 
 
+## `m5` `m6` `m7` `m8`
 ```{r}
 layout(1, respect=TRUE)
 
@@ -203,6 +215,16 @@ abline(a=coef(m7)[3,1], b=coef(m7)[3,2], col=3)
 abline(a=coef(m7)[4,1], b=coef(m7)[4,2], col=4)
 abline(a=coef(m7)[5,1], b=coef(m7)[5,2], col=5)
 
+plot(circumference~age, d, pch=16, col=d$Tree, xlim=c(0,2000), ylim=c(-50, 200))
+abline(a=coef(m7)[1,1], b=coef(m7)[1,2], col=1)
+abline(a=coef(m7)[2,1], b=coef(m7)[2,2], col=2)
+abline(a=coef(m7)[3,1], b=coef(m7)[3,2], col=3)
+abline(a=coef(m7)[4,1], b=coef(m7)[4,2], col=4)
+abline(a=coef(m7)[5,1], b=coef(m7)[5,2], col=5)
+abline(v=0, lty=2)
+
+
+
 
 m8 = lme4::lmer(circumference ~ age + (0+age | Tree), data = d)
 summary(m8)
@@ -217,11 +239,11 @@ abline(a=coef(m8)$Tree[5,1], b=coef(m8)$Tree[5,2], col=5)
 
 
 
-## Choix de modèles
+## Choix du modèle
 
 
 ```{r echo=FALSE}
-plot(0:8, c(
+plot(c(
   BICm0=BIC(m0),
   BICm1=BIC(m1),
   BICm2=BIC(m2),
@@ -231,7 +253,8 @@ plot(0:8, c(
   BICm6=BIC(m6),
   BICm7=BIC(m7),
   BICm8=BIC(m8)
-))
+), ylab="BIC", xaxt="n", xlab="")
+axis(1, at=1:9, label=c("m0", "m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"))
 ```
 ```{r}
 BIC(m0)

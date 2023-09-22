@@ -116,6 +116,8 @@ m4 = lme4::lmer(Reaction ~ Days + (Days | Subject), data=d)
 
 
 
+## `m4`
+
 ```{r lme}
 layout(1, respect=TRUE)
 
@@ -146,6 +148,7 @@ m8 = lme4::lmer(Reaction ~ Days + (0+Days | Subject), data = d)
 3. J’étudie la distribution des résidus ; 
 4. Je valide les hypothèses des modèles ;
 
+## `m6` `m8`
 
 ```{r}
 layout(1, respect=TRUE)
@@ -170,7 +173,21 @@ for (i in 1:n) {
 
 
 
-## Choix de modèles
+## Choix du modèle
+
+
+
+```{r echo=FALSE}
+plot(c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm4=BIC(m4),
+  BICm6=BIC(m6),
+  BICm8=BIC(m8)
+), ylab="BIC", xaxt="n", xlab="")
+axis(1, at=1:6, label=c("m0", "m1", "m2", "m4", "m6", "m8"))
+```
 
 
 ```{r}
@@ -180,6 +197,22 @@ BIC(m2)
 BIC(m4)
 BIC(m6)
 BIC(m8)
+```
+
+```{r}
+# m9 = lme4::lmer(Reaction ~ Days + Subject+(0+Days | Subject), data = d)
+# summary(m9)
+# coef(m9)
+# plot(Reaction~Days, d, pch=16, col=d$Subject)
+# for (i in 1:n) {
+# }
+# for (i in 1:n) {
+#   if (i==1) {
+#     abline(a=coef(m8)$Subject[i,1], b=coef(m8)$Subject[i,2], col=i)
+#   } else {
+#     abline(a=coef(m8)$Subject[i,1] + coef(m9)$Subject[1,i+1], b=coef(m8)$Subject[i,2], col=i)
+#   }
+# }
 ```
 
 

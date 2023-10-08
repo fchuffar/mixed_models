@@ -1,0 +1,179 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP3_simu: `BodyWeight` like data"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Simulateur
+
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+rats_on_a_diet_sim = function(
+    basal_weight=200,
+    basal_weight_gain = 20,
+    delta_fixed_effect_diet_int = 2, 
+    delta_fixed_effect_diet_slp = 2, 
+    sd_random_effect_rat_int = 5,
+    sd_random_effect_rat_slp = 5,
+    nb_rep = 25, nb_week = 10, seed=1
+    ) {
+  d = data.frame(week=rep((1:nb_week)-1, nb_rep*2), rat=rep(paste0("r", 1:(nb_rep*2)), each=nb_week), diet=rep(paste0("d", 1:2), each=nb_week*nb_rep), stringsAsFactors=TRUE)
+  levels(d$rat) = unique(d$rat)
+  class(d) = c("nfnGroupedData", "nfGroupedData", "groupedData", "data.frame")
+  attributes(d)$formula = formula("weight ~ week | rat")
+  head(d)
+  dim(d)
+
+  d$basal_weight = basal_weight
+  d$basal_weight_gain = basal_weight_gain
+
+  # diet fixed effects
+  d$fixed_effect_diet_int = c(
+      d1 = - delta_fixed_effect_diet_int/2,
+      d2 =   delta_fixed_effect_diet_int/2
+    )[d$diet]
+  d$fixed_effect_diet_slp = c(
+    d1 =  - delta_fixed_effect_diet_slp/2,
+    d2 =  + delta_fixed_effect_diet_slp/2
+  )[d$diet]
+  
+  # rat random effect 
+  set.seed(seed)
+  random_effect_rat_int = rnorm(length(levels(d$rat))) * sd_random_effect_rat_int
+  random_effect_rat_slp = rnorm(length(levels(d$rat))) * sd_random_effect_rat_slp
+  # random_effect_rat_slp = sort(random_effect_rat_slp)[rank(random_effect_rat_int)]
+  # random_effect_rat_slp = random_effect_rat_slp[c(length(random_effect_rat_slp), 2:(length(random_effect_rat_slp)-1), 1)]
+  # plot(random_effect_rat_int[order(random_effect_rat_int)])
+  # lines(random_effect_rat_slp[order(random_effect_rat_int)], col=2)
+  names(random_effect_rat_int) = levels(d$rat)
+  names(random_effect_rat_slp) = levels(d$rat)
+  
+  d$random_effect_rat_int = random_effect_rat_int[d$rat]
+  d$random_effect_rat_slp = random_effect_rat_slp[d$rat]
+
+  d$noise = rnorm(length(levels(d$rat))) * 10
+
+  d$weight = d$basal_weight + d$fixed_effect_diet_int + d$random_effect_rat_int + d$week * (d$basal_weight_gain + d$fixed_effect_diet_slp + d$random_effect_rat_slp) + d$noise
+
+  return(d) 
+}
+d = rats_on_a_diet_sim()
+
+layout(1, respect=TRUE)
+plot(weight~week, d, col=as.numeric(d$rat), pch=as.numeric(d$diet))
+legend("topleft", col=c(1:length(levels(d$rat)), 1, 1), pch=c(rep(1, length(levels(d$rat))/2), rep(2, length(levels(d$rat))/2), 1, 2), c(levels(d$rat), levels(d$diet)))
+```
+
+
+
+
+# Impacte du cofacteur `diet` sur la prise de poid
+
+## Approche naïve
+
+```{r}
+m9 = lm(weight~week*diet, d)
+summary(m9)
+layout(matrix(1:2,1), respect=TRUE)
+plot(weight~week, d, col=as.numeric(d$diet), pch=1)
+legend("topleft", c("diet1", "diet2"), col=1:2, lty=1)
+abline(a=m9$coef[1], b=m9$coef[2], col=1)
+abline(a=m9$coef[1] + m9$coef[["dietd2"]], b=m9$coef[2]+m9$coef[["week:dietd2"]], col=2)
+```
+
+## Prise en compte du facteur `rat` (paired)
+
+```{r}
+m10 = lm(weight~week*diet+rat, d)
+summary(m10)
+layout(matrix(1:2,1), respect=TRUE)
+plot(weight~week, d, col=as.numeric(d$rat), pch=as.numeric(d$diet))
+legend("topleft", c("diet1", "diet2"), col=1:2, lty=1)
+abline(a=m10$coef[1], b=m10$coef[2], col=1)
+abline(a=m10$coef[1] + m10$coef[["dietd2"]], b=m10$coef[2]+m10$coef[["week:dietd2"]], col=2)
+```
+
+
+## Prise en compte du facteur `rat` comme un effet aléatoire
+
+
+
+```{r}
+m11 = lme4::lmer(weight ~ week*diet + (week | rat), data=d)
+summary(m11)
+layout(1, respect=TRUE)
+plot(weight~week, d, col=as.numeric(d$rat), lty=as.numeric(d$diet), pch=as.numeric(d$diet), main="weight ~ week*diet + (week | rat)")
+for (i in 1:length(levels(d$rat))) {
+  tmp_diet = d[d$rat==levels(d$rat)[i],]$diet[1]
+  if (tmp_diet=="d1") {
+    abline(a=coef(m11)$rat[i,1]                  , b=coef(m11)$rat[i,2]                  , col=i)    
+  } else if (tmp_diet=="d2") {
+    abline(a=coef(m11)$rat[i,1]+coef(m11)$rat[i,3], b=coef(m11)$rat[i,2]+coef(m11)$rat[i,4], col=i)
+  } 
+}
+
+m12 = nlme::lme(weight ~ week*diet, random=~1+week, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m12)
+```
+
+# Faux positifs
+
+```{r}
+basal_weight=200
+basal_weight_gain = 20
+delta_fixed_effect_diet_int = 0 
+delta_fixed_effect_diet_slp = 0 # /!\ no fixed effect 
+sd_random_effect_rat_int = 0    # only random effect on   
+sd_random_effect_rat_slp = 5    # weight gain per rat 
+nb_rep = 10
+nb_week = 10
+seed=1
+
+params = c(2,3,5, 10, 20)
+plot(0,0, col=0, xlim=range(params), ylim=c(0,10), ylab="-log10(pval)", xlab="sd_random_effect_rat_slp")
+abline(h=-log10(0.05))
+legend("topright", c("lm", "nlme"), col=c(2,4), pch=1)
+for (seed in 1:5) {
+  for (param in params) {
+    d = rats_on_a_diet_sim(
+      sd_random_effect_rat_int    = sd_random_effect_rat_int   ,
+      sd_random_effect_rat_slp    = param   ,
+      delta_fixed_effect_diet_int = delta_fixed_effect_diet_int,
+      delta_fixed_effect_diet_slp = delta_fixed_effect_diet_slp,
+      basal_weight_gain           = basal_weight_gain          ,
+      basal_weight                = basal_weight               ,
+      nb_rep                      = nb_rep                     ,
+      nb_week                     = nb_week                    ,
+      seed                        = seed                       
+    )
+    m10 = lm(weight~week*diet+rat, d)
+    m12 = nlme::lme(weight ~ week*diet, random=~1+week, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+    s = summary(m12)
+    a = anova(m10)
+    lpv_lm = -log10(a[4,5])
+    lpv_mm = -log10(s$tTable[4,5])
+    points(param, lpv_lm, col=2)
+    points(param, lpv_mm, col=4)  
+  }
+}
+
+```
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

@@ -1,0 +1,60 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP4: `Spruce`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+d = nlme::RatPupWeight
+head(d)
+dim(d)
+layout(1, respect=TRUE)
+plot(d)
+```
+
+# Analyses univariée
+
+Je commente les graphiques suivants
+
+```{r}
+layout(matrix(1:1, 1), respect=TRUE)
+boxplot(d$weight~d$sex)
+plot(d$weight~d$Lsize)
+boxplot(d$weight~d$Litter)
+boxplot(d$weight~d$Treatment)
+```
+
+
+# Effet du traitement sur le poid des ratons
+
+Je construis un modèle mixte pour étudier les effets du traitement sur le poid des ratons : 
+
+  - Je choisis mes effets aléatires
+  - Je choisis mes effets fixes
+  - Je choisis mes cofacteurs (facteurs confondants)
+  - Je construis le modèle, je calcule ses paramètres
+  - J’interprête le modèle
+  - Je conclus
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

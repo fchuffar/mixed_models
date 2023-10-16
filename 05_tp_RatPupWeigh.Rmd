@@ -1,6 +1,6 @@
 ---
 title: "Modèles mixtes"
-subtitle: "TP4: `Spruce`"
+subtitle: "TP5: `RatPupWeight`"
 author: "Florent Chuffart"
 date: "`r Sys.Date()`"
 output: 
@@ -23,11 +23,12 @@ J’étudie le jeux de données suivant :
 d = nlme::RatPupWeight
 head(d)
 dim(d)
+table(d$Treatment)
 layout(1, respect=TRUE)
 plot(d)
 ```
 
-# Analyses univariée
+# Analyses univariées
 
 Je commente les graphiques suivants
 
@@ -44,7 +45,7 @@ boxplot(d$weight~d$Treatment)
 
 Je construis un modèle mixte pour étudier les effets du traitement sur le poid des ratons : 
 
-  - Je choisis mes effets aléatires
+  - Je choisis mes effets aléatoires
   - Je choisis mes effets fixes
   - Je choisis mes cofacteurs (facteurs confondants)
   - Je construis le modèle, je calcule ses paramètres

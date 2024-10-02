@@ -7,6 +7,8 @@ A set of scripts and practicles illustrating the use of mixed models
 Set up your conda environment as follow:
 
 ```
+# form base environment
+conda install -c conda-forge mamba
 # conda create -n mixedmodels_env
 conda activate mixedmodels_env
 # mamba install -c anaconda -c bioconda -c conda-forge -c r r-base r-rmarkdown r-nlme r-lme4

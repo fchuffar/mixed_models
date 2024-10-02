@@ -26,6 +26,66 @@ dim(d)
 table(d$Treatment)
 layout(1, respect=TRUE)
 plot(d)
+
+# m = lm(weight ~ Treatment*sex, d)
+# # summary(m)
+# anova(m)
+# table(d$sex, s$Litter)
+
+
+m = nlme::lme(weight ~ Treatment, random=~1+Lsize, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+# m = nlme::lme(weight ~ Treatment, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+m = nlme::lme(weight ~ Treatment+Lsize, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+m = nlme::lme(weight ~ Treatment, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m)
+
+
+m_lo = lm(pemax ~ 1, data=d)
+m_up = lm(pemax ~ ., data=d)
+m_lo = nlme::lme(weight ~ 1, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+m_up = nlme::lme(weight ~ ., random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+
+m = nlme::lme(weight ~ 1, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m)
+
+m_lo = lme4::lmer(weight ~ 1 + (1 | Litter), data = d)
+m_up = lme4::lmer(weight ~ Treatment*sex + Lsize + (1 | Litter), data = d)
+m_step = step(m_lo, method="forward", scope=list(upper=m_up,lower=m_lo))
+
+
+m_up = lme4::lmer(weight ~ Treatment*sex + (Treatment | Litter), data = d)
+summary(m_up)
+
+m_up = lme4::lmer(weight ~ Treatment*sex + (1 | Litter), data = d)
+summary(m_up)
+
+
+m = lm(weight~Lsize, d)
+d$w_resLsize = m$residuals
+boxplot(d$w_resLsize~d$Litter)
+
+m1 = nlme::lme(weight ~ 1, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+m2 = nlme::lme(weight ~ Lsize, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+m1 = lm(weight~Lsize, d)
+m2 = lm(weight~1, d)
+
+# d_orig = d
+d = d_orig
+# d =  d[d$Treatment!="High",]
+# d =  d[d$Treatment!="Low",]
+# d =  d[d$Treatment!="Control",]
+
+m1 = lme4::lmer(weight ~ 1 + (1 | Litter), data = d)
+m2 = lme4::lmer(weight ~ Treatment + (1 | Litter), data = d)
+m3 = lme4::lmer(weight ~ Treatment + Lsize + (1 | Litter), data = d)
+m4 = lme4::lmer(weight ~ Treatment + Lsize + sex + (1 | Litter), data = d)
+m5 = lme4::lmer(weight ~ Treatment*sex + Lsize + (1 | Litter), data = d)
+anova(m1, m2, m3, m4, m5, test="Chisq")
+
+m = nlme::lme(weight ~ Treatment + Lsize + sex, random=~1, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m)
+
+  
 ```
 
 # Analyses univariées

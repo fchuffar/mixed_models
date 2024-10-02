@@ -170,6 +170,13 @@ for (seed in 1:5) {
 
 ```
 
+# TP noté
+
+En se fondant sur ces resultats et en reprenant le cadre formel d'une analyse statistique vu en M1 : 
+
+ - analysez le nouveau jeu de données (`05_evaluation_simulateur.txt`) 
+ - concluez si, dans cette nouvelle etude, le regime a un impact sur la prise de poids des rats.
+
 
 # Session Information
 

@@ -1,5 +1,0 @@
-rmarkdown::render("01_tp_Orange.Rmd")
-rmarkdown::render("02_tp_sleepstudy.Rmd")
-rmarkdown::render("03_tp_BodyWeight.Rmd")
-rmarkdown::render("04_tp_simulator.Rmd")
-rmarkdown::render("05_tp_RatPupWeigh.Rmd")

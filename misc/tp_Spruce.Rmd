@@ -1,0 +1,44 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP4: `Spruce`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+d = nlme::Spruce
+head(d)
+dim(d)
+layout(1, respect=TRUE)
+plot(d)
+
+m1 = nlme::lme(logSize~days+Tree, random=~1|plot, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m1)
+```
+
+
+
+
+
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

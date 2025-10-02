@@ -1,0 +1,57 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP4: `Spruce`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+d = nlme::Oats
+head(d)
+dim(d)
+layout(1, respect=TRUE)
+plot(d)
+
+plot(yield~nitro, d, col=as.numeric(d$Variety), pch=as.numeric(d$Block))
+m = lm(yield~nitro+Variety*Block, d)
+summary(m)
+```
+
+# Modèle 
+
+```{r}
+m1 = nlme::lme(yield~nitro+Variety, random=~1|Block, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m1)
+```
+
+J’évalue le choix réalisé pour modéliser les effets aléatoires.
+
+
+
+
+
+
+
+
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

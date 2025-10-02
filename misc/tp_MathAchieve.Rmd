@@ -1,0 +1,61 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP4: `Spruce`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeux de données suivant : 
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+d = nlme::MathAchieve
+head(d)
+dim(d)
+layout(1, respect=TRUE)
+
+plot(MathAch~MEANSES, d)
+plot(MathAch~SES, d)
+plot(MathAch~Sex, d)
+plot(MathAch~Minority, d)
+boxplot(MathAch~Minority+Sex, d)
+```
+
+# Modèle 
+
+```{r}
+m0 = lm(MathAch~Minority*Sex, d)
+summary(m0)
+
+m1 = nlme::lme(MathAch~Minority+Sex, random=~1|School, data=d, control=nlme::lmeControl(opt='optim'), method="ML")
+summary(m1)
+```
+
+J’évalue le choix réalisé pour modéliser les effets aléatoires.
+
+
+
+
+
+
+
+
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

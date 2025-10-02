@@ -1,0 +1,179 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP1: `GSE72680`"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+# Data
+
+J’étudie le jeu de données suivant : 
+
+```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
+d = datasets::Orange
+d$Tree = factor(d$Tree, levels=unique(d$Tree), order=FALSE)
+# head(d)
+# dim(d)
+d2 = d
+
+df1 = readRDS("dmrdb.rds")
+
+dmrs = levels(df1$dmr) 
+dmrs = c("dmr196", "dmr236", "dmr245", "dmr256", "dmr280", "dmr287")
+tissues = levels(df1$tissue) 
+
+df1 = df1[df1$dmr%in%dmrs,]
+df1 = df1[df1$grp%in%c("grp1", "grp2", "grp3"),]
+
+df1 = df1[order(df1$grp, df1$probe),]
+df1$probe = as.character(df1$probe)
+df1$grp = as.numeric(df1$grp)
+d = df1
+
+
+layout(matrix(1:2,2), respect=FALSE)
+bp = boxplot(meth~grp*probe, d, col=1:3)
+points(bp$stats[3,],pch=16, col=5)
+m = lm(meth~probe, d)
+# summary(m)
+anova(m)
+# d$meth = d$meth - predict(m)
+d$meth = m$residuals
+bp = boxplot(meth~grp*probe, d, col=1:3)
+points(bp$stats[3,],pch=16, col=5)
+
+m = lm(meth~grp*probe, d)
+# summary(m)
+anova(m)
+
+
+# m1 = lm(meth~grp*probe, d)
+# summary(m1)
+#
+#
+#
+# d = df1
+# # m = lm(meth~probe*indiv, d)
+# m2 = lme4::lmer(meth~probe + (1|indiv), subd)
+# summary(m2)
+#
+#
+# d = df1
+#
+# m = lm(meth~tissueprobe+indiv, d)
+# summary(m)
+# anova(m)
+# # d$meth = d$meth - predict(m)
+# d$meth = m$residuals
+#
+# # d=d[order(m1$coef[-(2:3)])]
+#
+#
+# # Grouped Data: distance ~ age | Subject
+# res.lmer = lme4::lmer(meth ~ grp + (grp | probe), d)
+#
+#
+#
+# m = lm(meth~grp*probe, d)
+# summary(m)
+#
+#
+#
+# m = lm(meth~grp*probe, d)
+# # d=d[order(m1$coef[-(2:3)])]
+#
+#
+#
+# m2 = lme4::lmer(meth~grp+probe + (1+probe|indiv), subd)
+# summary(m2)
+#
+# m2 = lme4::lmer(meth~grp+dmr+tissue + (1+tissue|indiv+dmr|probe), d)
+# m2 = lme4::lmer(meth~grp+dmr+tissue + (1+dmr+tissue|indiv), d)
+# summary(m2)
+# coef(m2)
+#
+m = lm(meth~grp+dmr+tissue, d)
+summary(m)
+coef(m)
+# plot(sort(coef(m)[-(1:4)]))
+# foo = coef(m)[-(1:4)]
+# names(foo) = substr(names(foo), 4, 100)
+# foo = unlist(foo)
+# bar = table(d$dmr)
+# x = foo
+# y = as.vector(bar[names(foo)])
+# # names(y) = NULL
+# # names(x) = NULL
+# plot(x, y)
+
+names(x)
+m = lm(meth~grp+dmr+tissue+dmr:tissue, d)
+summary(m)
+m$coef
+
+
+
+for (dmr in dmrs) { 
+  d[d$dmr%in%dmr,]
+  layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+
+  subd = d[d$dmr%in%dmr,]
+  
+  # m2 = lme4::lmer(meth~grp+probe + (1+probe|indiv), subd)
+  # summary(m2)
+
+  # m2 = lme4::lmer(meth~grp+probe + (1|probe), subd)
+  # summary(m2)
+  
+  
+  for (tissue in tissues) { 
+    subd = d[d$dmr%in%dmr&d$tissue%in%tissue,]
+    subd$probe = as.character(subd$probe)
+    # subd$grp = as.character(subd$grp)
+    data = sapply(unique(subd$probe), function(probe){
+      subd[subd$probe%in%probe,]$meth
+    })
+    
+    m = lm(meth~grp +probe, subd)
+    # subd = subd[order(subd),]
+
+    
+    data = cbind(
+      c(mean(d$meth)-0.5, mean(d$meth), mean(d$meth)+0.5) [subd[subd$probe%in%unique(subd$probe)[1],]$grp],
+      data)
+
+    colors = c("cyan", "black", "red")
+    cols = colorRampPalette(colors)(100)
+    breaks = seq(0, 1, length.out = length(cols) + 1) 
+    breaks = seq(mean(d$meth)-0.5, mean(d$meth)+0.5, length.out = length(cols) + 1) 
+    main = paste(tissue, dmr)
+    # par(mar=c(10, 4.1, 4.1, 2.1))
+    image(t(data), col=cols, breaks=breaks, xaxt="n", yaxt="n", main=main)
+    # axis(1, (1:nrow(data$meth_data) - 1)/(nrow(data$meth_data) - 1), rownames(data$meth_data), las = 2)
+        
+    m = lm(meth~grp+probe, subd)
+    summary(m)
+    boxplot(meth~grp+probe, subd, las=2, col=1:length(unique(subd$grp)), main=main)
+  }  
+}
+
+
+```
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

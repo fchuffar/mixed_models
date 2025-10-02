@@ -1,0 +1,187 @@
+---
+title: "Modèles mixtes"
+subtitle: "TP2: `biodivcontinamerdb`"
+author: "Florent Chuffart & Laurent Husson"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=4.5, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+
+# Data
+
+  -  *lon*            : longitude
+  -  *lat*            : lattitude
+  -  *z*              : altitude
+  -  *rug*            : rugosity
+  -  *wsm*            : World Strain Map [1, Fig. 2a], a worldwide quantification of the rate at which the surface of the Earth*s crust is currently shortened, sheared or stretched by tectonic forces
+  -  *spr_amphibians* : species richness for amphibians
+  -  *spr_birds*      : species richness for birds   
+  -  *spr_mammals*    : species richness for mammals
+  -  *area*           : geographique area
+                 
+                 
+                
+
+
+```{r db_files, echo=TRUE, results="verbatim"}
+biodivcontinamerdb = readRDS("biodivcontinamerdb.rds")
+# set.seed(1)
+# biodivcontinamerdb = biodivcontinamerdb[sort(sample(1:nrow(biodivcontinamerdb), 30000)), ]
+# saveRDS(biodivcontinamerdb, "biodivcontinamerdb.rds")
+# table(biodivcontinamerdb$area)
+head(biodivcontinamerdb)
+dim(biodivcontinamerdb)
+```
+
+
+```{r map, fig.height=6, fig.width=8}
+d = biodivcontinamerdb
+# layout(cbind(matrix(1, nrow=3, ncol=3), matrix(2:4)), respect=TRUE)
+layout(1, respect=TRUE)
+plot(  d$lon, d$lat, pch=".", col=c("grey75", "grey25")[(d$wsm>0)+1], main="North, Central and South American west coast" )
+points(d$lon, d$lat, pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
+legend("topright", c("wsm==0", "wsm>0"), col=c("grey75", "grey25"), pch=15)
+legend("bottomleft", levels(d$area), col=1:length(levels(d$area)), pch=15)
+
+```
+
+
+```{r, fig.height=3, fig.width=9}
+layout(matrix(1:3, nrow=1), respect=TRUE)
+plot(d$lat, d$spr_amphibians, xlab="lat", ylab="spr", main="amphibians", pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
+plot(d$lat, d$spr_birds     , xlab="lat", ylab="spr", main="birds"     , pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
+plot(d$lat, d$spr_mammals   , xlab="lat", ylab="spr", main="mammals"   , pch=".", col=adjustcolor(as.numeric(d$area), alpha.f=.1))
+```
+
+```{r}
+layout(1, respect=TRUE)
+plot(  d$lon, d$lat, pch=".", col=c("grey75", "grey25")[(d$wsm>0)+1], main="North, Central and South American west coast" )
+tmpd = d[d$area == "sam_central" & d$spr_birds > 200,]
+points(tmpd$lon, tmpd$lat, col=2)
+tmpd = d[d$area == "sam_central" & d$spr_birds < 200,]
+points(tmpd$lon, tmpd$lat, col=4)
+
+# Warning: take care of factors!
+# d$area2 = d$area
+# d[d$area == "sam_central" & d$spr_birds > 200,]$area2 = "amazonia"
+# table(d$area2 , useNA="ifany")
+
+d$area2 = as.character(d$area)
+d[d$area == "sam_central" & d$spr_birds > 200,]$area2 = "amazonia"
+d$area2 = factor(d$area2, levels=c(levels(d$area), "amazonia"))
+
+
+layout(1, respect=TRUE)
+plot(  d$lon, d$lat, pch=".", col=c("grey75", "grey25")[(d$wsm>0)+1], main="North, Central and South American west coast" )
+points(d$lon, d$lat, pch=".", col=adjustcolor(as.numeric(d$area2), alpha.f=.1))
+legend("topright", c("wsm==0", "wsm>0"), col=c("grey75", "grey25"), pch=15)
+legend("bottomleft", levels(d$area2), col=1:length(levels(d$area2)), pch=15)
+```
+
+
+```{r spr, fig.height=3, fig.width=9}
+layout(matrix(1:3, nrow=1), respect=TRUE)
+plot(d$lat, d$spr_amphibians, xlab="lat", ylab="spr", main="amphibians", pch=".", col=adjustcolor(as.numeric(d$area2), alpha.f=.1))
+plot(d$lat, d$spr_birds     , xlab="lat", ylab="spr", main="birds"     , pch=".", col=adjustcolor(as.numeric(d$area2), alpha.f=.1))
+plot(d$lat, d$spr_mammals   , xlab="lat", ylab="spr", main="mammals"   , pch=".", col=adjustcolor(as.numeric(d$area2), alpha.f=.1))
+```
+
+
+
+
+
+# Questions
+
+Does the World Strain Map impact the species richness given the lattitude for birds?
+
+
+
+
+
+
+
+
+# Models
+
+
+
+
+```{r data, eval=TRUE, echo=TRUE, results="verbatim"}
+d$grp = d$area2
+# class
+class(d) = c("nfnGroupedData", "nfGroupedData", "groupedData", "data.frame")
+attributes(d)$formula = formula(spr_birds ~ lat | grp)
+```
+
+
+
+
+
+```{r echo=TRUE, results="verbatim"}
+d$abslat = abs(d$lat)
+d$wsm01 = (d$wsm != 0)+0
+m01 = lm(spr_birds~abslat+wsm01, d)
+layout(1, respect=TRUE)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+points(d$lat, predict(m01), cex=.3, col=d$wsm01+1)
+legend("topleft", c("wsm==0", "wsm>0"), col=1:2, lty=1)
+summary(m01)
+```
+
+```{r echo=FALSE, results="verbatim"}
+m2 = lm(spr_birds~(abslat+wsm01)*grp, d)
+summary(m2)
+layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)
+plot(spr_birds~lat, d, pch=".", col=d$grp)
+points(d$lat, predict(m2), cex=.3, col=d$wsm01+1)
+legend("topright", cex=.7, levels(d$grp), col=1:length(levels(d$grp)), pch=16)
+legend("topleft", c("wsm==0", "wsm>0"), col=1:2, lty=1)
+```
+
+
+
+
+
+
+
+
+# Residuals
+
+We try to explain model residuals by `wsm`
+
+```{r residuals}
+for (area2 in levels(d$area2)) {
+  sub_d = d[d$area2==area2 & d$wsm>0,]
+  m = lm(spr_birds~lat, sub_d)
+  layout(matrix(1:2, 1, byrow=TRUE), respect=TRUE)  
+  plot(sub_d$lat, sub_d$spr_birds, pch=".", main=area2)
+  points(sub_d$lat, predict(m), cex=.3)
+  smoothScatter(m$residuals, sub_d$wsm)
+  # mres = lm(sub_d$wsm~m$residuals)
+  # abline(mres)
+}
+```
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+
+
+
+

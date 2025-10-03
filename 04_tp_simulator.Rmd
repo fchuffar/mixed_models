@@ -1,6 +1,6 @@
 ---
 title: "Modèles mixtes"
-subtitle: "TP3_simu: `BodyWeight` like data"
+subtitle: "TP4_simu: `BodyWeight` like data"
 author: "Florent Chuffart"
 date: "`r Sys.Date()`"
 output: 
@@ -96,7 +96,8 @@ abline(a=m9$coef[1] + m9$coef[["dietd2"]], b=m9$coef[2]+m9$coef[["week:dietd2"]]
 
 ```{r}
 m10 = lm(weight~week*diet+rat, d)
-summary(m10)
+# summary(m10)
+anova(m10)
 layout(matrix(1:2,1), respect=TRUE)
 plot(weight~week, d, col=as.numeric(d$rat), pch=as.numeric(d$diet))
 legend("topleft", c("diet1", "diet2"), col=1:2, lty=1)
@@ -169,13 +170,6 @@ for (seed in 1:5) {
 }
 
 ```
-
-# TP noté
-
-En se fondant sur ces resultats et en reprenant le cadre formel d'une analyse statistique vu en M1 : 
-
- - analysez le nouveau jeu de données (`05_evaluation_simulateur.txt`) 
- - concluez si, dans cette nouvelle etude, le regime a un impact sur la prise de poids des rats.
 
 
 # Session Information

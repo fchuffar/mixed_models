@@ -47,15 +47,41 @@ L’objectif est de déterminer si l’âge a un impact sur l’accessibilité d
 
 
 ```{r, eval=TRUE, echo=TRUE, results="verbatim"}
-yng = read.table("05_yng.txt")
 old = read.table("05_old.txt")
-matplot(t(yng), col=1, lty=1, type="l", xlab="position (100 bp)", ylab="accessibilité (RPM)")
-matplot(t(old), col=2, lty=1, type="l", add=TRUE)
-legend("topright", c("jeunes", "agées"), col=1:2, pch=16)
+yng = read.table("05_yng.txt")
+matplot(t(old), col=1, lty=1, type="l", xlab="position (100 bp)", ylab="accessibilité (RPM)")
+matplot(t(yng), col=2, lty=1, type="l", add=TRUE)
+legend("topright", c("agées", "jeunes"), col=1:2, pch=16)
 
 ```
 
 
+# Mise en forme des données
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+df_yng = lapply(1:nrow(yng), function(i){
+  row = as.matrix(yng)[i,]
+  data.frame(acc=row, pos=1:ncol(yng), ind=paste0("yng", i), grp="yng")
+})
+df_yng = do.call(rbind, df_yng)
+df_old = lapply(1:nrow(old), function(i){
+  row = as.matrix(old)[i,]
+  data.frame(acc=row, pos=1:ncol(old), ind=paste0("old", i), grp="old")
+})
+df_old = do.call(rbind, df_old)
+d = rbind(df_yng, df_old)
+class(d) = c("nfnGroupedData", "nfGroupedData", "groupedData", "data.frame")
+attributes(d)$formula = formula("acc ~ pos | ind")
+head(d)
+tail(d)
+dim(d)
+```
+
+```{r}
+boxplot(acc~pos, data, xlab="position (100 bp)", ylab="accessibilité (RPM)")
+boxplot(acc~grp+pos, data, col=1:2, xlab="position (100 bp)", ylab="accessibilité (RPM)", xaxt="n")
+legend("topright", c("agées", "jeunes"), col=1:2, pch=16)
+```
 
 # Session Information
 

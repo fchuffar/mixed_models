@@ -49,7 +49,7 @@ L’objectif est de déterminer si l’âge a un impact sur l’accessibilité d
 ```{r, eval=TRUE, echo=TRUE, results="verbatim"}
 yng = read.table("05_yng.txt")
 old = read.table("05_old.txt")
-matplot(t(yng), col=1, lty=1, type="l")
+matplot(t(yng), col=1, lty=1, type="l", xlab="position (100 bp)", ylab="accessibilité (RPM)")
 matplot(t(old), col=2, lty=1, type="l", add=TRUE)
 legend("topright", c("jeunes", "agées"), col=1:2, pch=16)
 

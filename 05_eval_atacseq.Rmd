@@ -1,0 +1,65 @@
+---
+title: "Modèles Mixtes"
+subtitle: "TP noté: `ATAC-seq` data"
+author: "Florent Chuffart"
+date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::opts_chunk$set(collapse=TRUE, comment = "#>", fig.width=9, fig.height=6, eval=TRUE, echo=TRUE, results="verbatim", warning=FALSE)
+```
+
+# Contexte
+
+On dispose d’un jeu de données comportant 40 observations de l’accessibilité moyenne de la chromatine pour un ensemble de locus donnés.
+Parmi ces 40 observations, 20 proviennent d’individus jeunes et 20 d’individus âgés.
+
+L’objectif est de déterminer si l’âge a un impact sur l’accessibilité de la chromatine.
+
+
+# Travail demandé
+
+1. Visualisation des données (**figure**)
+  - Représentez graphiquement les distributions d’accessibilité entre individus jeunes et âgés
+  - Assurez-vous que la figure soit lisible, bien annotée et légendée.
+2. Rédaction de la **légende** (un paragraphe)
+  - La légende doit être complète et autonome :
+  - rappeler brièvement le contexte,
+  - décrire ce que montre la figure (groupes, effectifs, tendance générale),
+3. **Méthodologie** (modèle mixte)
+  - Mettez en place un modèle mixte pour tester l’effet de l’âge et expliquez dans un paragraphe votre démarche de manière reproductible :
+    - choix du modèle,
+    - choix des effets fixes et aleatoires
+    - packages utilisés,
+    - formulation du modèle.
+5. **Résultats** et conclusion (un paragraphe)
+  - Présentez clairement vos résultats :
+  - estimation de l’effet de l’âge,
+  - significativité statistique,
+  - Concluez explicitement : l’âge a-t-il ou non un effet significatif sur l’accessibilité de la chromatine ?
+
+
+```{r, eval=TRUE, echo=TRUE, results="verbatim"}
+yng = read.table("05_yng.txt")
+old = read.table("05_old.txt")
+matplot(t(yng), col=1, lty=1, type="l")
+matplot(t(old), col=2, lty=1, type="l", add=TRUE)
+legend("topright", c("jeunes", "agées"), col=1:2, pch=16)
+
+```
+
+
+
+# Session Information
+
+```{r results="verbatim"}
+sessionInfo()
+```
+

@@ -270,6 +270,18 @@ BIC(m8)
 
 
 
+```{r echo=TRUE}
+m9 = lm(circumference~age +age:Tree, d)
+
+plot(c(
+  BICm0=BIC(m0),
+  BICm1=BIC(m1),
+  BICm2=BIC(m2),
+  BICm9=BIC(m9)
+), ylab="BIC", xaxt="n", xlab="")
+axis(1, at=1:4, label=c("m0", "m1", "m2", "m9"))
+```
+
 
 # Conclusion
 
